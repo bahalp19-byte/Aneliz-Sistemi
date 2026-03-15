@@ -1,4 +1,27 @@
-"""
+"""import streamlit as st
+
+# ŞİFRE KORUMASI
+def check_password():
+    if "password_correct" not in st.session_state:
+        st.session_state["password_correct"] = False
+
+    if st.session_state["password_correct"]:
+        return True
+
+    st.title("Giriş Yap")
+    password = st.text_input("Lütfen şifreyi giriniz:", type="password")
+    if st.button("Giriş"):
+        if password == "541903":  
+            st.session_state["password_correct"] = True
+            st.rerun()
+        else:
+            st.error("Hatalı şifre!")
+    return False
+
+if not check_password():
+    st.stop()  # Şifre doğru değilse kodun geri kalanını çalıştırma
+
+# --- BURADAN SONRASI SENİN MEVCUT KODLARIN OLACAK ---
 ╔══════════════════════════════════════════════════════════════════════╗
 ║  APEX PRO v12.0 — MOBILE-FIRST SUPREME ICT/SMC TRADING TERMINAL     ║
 ║  Kripto · Forex · US Hisse · BIST  ·  Telefon + Tablet + Masaüstü  ║
