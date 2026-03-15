@@ -1,43 +1,20 @@
-"""import streamlit as st
-
-# ŞİFRE KORUMASI
-def check_password():
-    if "password_correct" not in st.session_state:
-        st.session_state["password_correct"] = False
-
-    if st.session_state["password_correct"]:
-        return True
-
-    st.title("Giriş Yap")
-    password = st.text_input("Lütfen şifreyi giriniz:", type="password")
-    if st.button("Giriş"):
-        if password == "541903":  
-            st.session_state["password_correct"] = True
-            st.rerun()
-        else:
-            st.error("Hatalı şifre!")
-    return False
-
-if not check_password():
-    st.stop()  # Şifre doğru değilse kodun geri kalanını çalıştırma
-
-# --- BURADAN SONRASI SENİN MEVCUT KODLARIN OLACAK ---
+"""
 ╔══════════════════════════════════════════════════════════════════════╗
-║  APEX PRO v12.0 — MOBILE-FIRST SUPREME ICT/SMC TRADING TERMINAL     ║
+║  APEX PRO v13.0 — MOBILE-FIRST SUPREME ICT/SMC TRADING TERMINAL     ║
 ║  Kripto · Forex · US Hisse · BIST  ·  Telefon + Tablet + Masaüstü  ║
 ╠══════════════════════════════════════════════════════════════════════╣
 ║  ZAMAN DİLİMLERİ: 1m · 3m · 5m · 10m · 15m · 30m · 1s · 4s · 1g  ║
 ╠══════════════════════════════════════════════════════════════════════╣
-║  v12.0 YENİLİKLER:                                                  ║
+║  v13.0 YENİLİKLER:                                                  ║
+║  • Şifre Koruması — profesyonel giriş ekranı (şifre: 541903)        ║
 ║  • Mobile-First CSS — 44px dokunma hedefi, swipe tab, alt nav bar   ║
 ║  • Responsive grid — 1-2-3-4 kolon otomatik adaptasyon             ║
 ║  • PWA benzeri alt navigasyon çubuğu (telefon için)                  ║
-║  • Ticker şeridi, hızlı kart grid, yatay scroll container           ║
-║  • Tüm v11.0 özellikleri korundu (hiçbir şey silinmedi)             ║
+║  • Tüm v12.0 özellikleri korundu (hiçbir şey silinmedi)             ║
 ╠══════════════════════════════════════════════════════════════════════╣
 ║  KURULUM:                                                            ║
 ║  pip install streamlit pandas numpy requests plotly yfinance         ║
-║  streamlit run apex_mobile_v12.py                                    ║
+║  streamlit run apex_final_v13.py                                     ║
 ╚══════════════════════════════════════════════════════════════════════╝
 """
 import streamlit as st
@@ -70,16 +47,196 @@ from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
 st.set_page_config(
-    page_title="APEX PRO v12.0",
+    page_title="APEX PRO v13.0",
     page_icon="⚡",
     layout="wide",
-    initial_sidebar_state="collapsed",   # Telefonda sidebar kapalı başlar
+    initial_sidebar_state="collapsed",
     menu_items={
         "Get Help": None,
         "Report a bug": None,
-        "About": "APEX PRO v12.0 — ICT/SMC Trading Terminal"
+        "About": "APEX PRO v13.0 — ICT/SMC Trading Terminal"
     }
 )
+
+# ═══════════════════════════════════════════════════════════════════
+#  ŞİFRE KORUMASI — PROFESYONEl GİRİŞ EKRANI
+# ═══════════════════════════════════════════════════════════════════
+_APP_PASSWORD = "541903"   # ← Şifreyi buradan değiştir
+
+def _login_page():
+    """Profesyonel giriş ekranı — şifre yanlışsa uygulamayı durdurur."""
+    st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap');
+    html,body,[class*="css"]{background:#020609!important;color:#c8d8f0!important;font-family:'JetBrains Mono',monospace!important;}
+    .stApp{background:#020609!important;}
+    .main .block-container{padding:0!important;max-width:100%!important;}
+    #MainMenu,footer,header,.stDeployButton{visibility:hidden;display:none;}
+    div[data-testid="stTextInput"] input{
+      background:#060d18!important;border:1.5px solid rgba(0,212,255,.25)!important;
+      color:#c8d8f0!important;border-radius:10px!important;font-size:16px!important;
+      padding:14px 18px!important;text-align:center!important;letter-spacing:6px!important;
+      font-family:'JetBrains Mono',monospace!important;
+    }
+    div[data-testid="stTextInput"] input:focus{
+      border-color:rgba(0,212,255,.7)!important;
+      box-shadow:0 0 20px rgba(0,212,255,.20)!important;outline:none!important;
+    }
+    .stButton>button{
+      background:linear-gradient(135deg,rgba(0,212,255,.18),rgba(0,255,136,.10))!important;
+      border:1.5px solid rgba(0,212,255,.45)!important;color:#00d4ff!important;
+      font-family:'JetBrains Mono',monospace!important;font-weight:700!important;
+      font-size:13px!important;border-radius:10px!important;letter-spacing:2px!important;
+      min-height:48px!important;padding:10px 32px!important;
+      box-shadow:0 4px 20px rgba(0,212,255,.15)!important;transition:.2s!important;
+    }
+    .stButton>button:hover{
+      background:linear-gradient(135deg,rgba(0,212,255,.28),rgba(0,255,136,.18))!important;
+      box-shadow:0 6px 28px rgba(0,212,255,.28)!important;transform:translateY(-1px)!important;
+    }
+    .stButton>button:active{transform:scale(0.97)!important;}
+    .stAlert{border-radius:10px!important;font-size:12px!important;}
+    @keyframes logo-glow{0%,100%{text-shadow:0 0 20px rgba(0,212,255,.3);}50%{text-shadow:0 0 40px rgba(0,212,255,.6),0 0 60px rgba(0,255,136,.2);}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+    .login-wrap{animation:fadeIn .4s ease-out;}
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Ortalanmış giriş kartı
+    _, col, _ = st.columns([1, 1.2, 1])
+    with col:
+        st.markdown("""
+        <div class="login-wrap" style="
+          min-height:100vh;display:flex;flex-direction:column;
+          align-items:center;justify-content:center;padding:40px 20px;">
+
+          <!-- Logo -->
+          <div style="text-align:center;margin-bottom:32px;">
+            <div style="font-family:'Bebas Neue',cursive;font-size:3.8rem;
+              background:linear-gradient(90deg,#00d4ff,#00ff88,#a855f7);
+              -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+              background-clip:text;letter-spacing:.2em;line-height:1;
+              animation:logo-glow 3s ease-in-out infinite;">APEX PRO</div>
+            <div style="font-size:9px;color:#3d5a80;letter-spacing:3px;margin-top:4px;
+              text-transform:uppercase;">v13.0 · Supreme ICT/SMC Terminal</div>
+            <div style="width:80px;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,255,.5),transparent);
+              margin:14px auto;"></div>
+            <div style="font-size:11px;color:#3d5a80;letter-spacing:1px;">
+              🔐 Güvenli Giriş
+            </div>
+          </div>
+
+          <!-- Kart -->
+          <div style="
+            background:linear-gradient(135deg,#060d18,#081220);
+            border:1px solid rgba(0,212,255,.15);
+            border-radius:16px;padding:32px 28px;width:100%;max-width:380px;
+            box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 40px rgba(0,212,255,.06);">
+
+            <div style="font-size:10px;color:#3d5a80;letter-spacing:2px;
+              text-transform:uppercase;text-align:center;margin-bottom:20px;">
+              ŞİFRENİZİ GİRİN
+            </div>
+        """, unsafe_allow_html=True)
+
+        # Şifre input
+        pwd = st.text_input(
+            "",
+            type="password",
+            placeholder="••••••",
+            key="login_pwd",
+            label_visibility="collapsed"
+        )
+
+        st.markdown("<div style='margin:16px 0;'></div>", unsafe_allow_html=True)
+
+        # Giriş butonu
+        login_btn = st.button("⚡  GİRİŞ YAP", use_container_width=True, type="primary", key="login_btn")
+
+        # Hata mesajı
+        if st.session_state.get("_login_failed"):
+            st.markdown("""
+            <div style="background:rgba(255,51,85,.08);border:1px solid rgba(255,51,85,.3);
+              border-radius:8px;padding:10px 14px;text-align:center;margin-top:12px;
+              font-size:11px;color:#ff3355;">
+              ❌ Hatalı şifre — tekrar deneyin
+            </div>
+            """, unsafe_allow_html=True)
+
+        # Deneme sayısı uyarısı
+        tries = st.session_state.get("_login_tries", 0)
+        if tries >= 3:
+            st.markdown(f"""
+            <div style="background:rgba(255,214,0,.06);border:1px solid rgba(255,214,0,.25);
+              border-radius:8px;padding:8px 12px;text-align:center;margin-top:10px;
+              font-size:10px;color:#ffd600;">
+              ⚠️ {tries} başarısız deneme
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("""
+            </div><!-- kart sonu -->
+            <div style="text-align:center;margin-top:20px;font-size:9px;color:#1a2840;">
+              APEX PRO ◈ Kripto · Forex · Hisse · BIST<br>
+              Eğitim amaçlıdır — yatırım tavsiyesi değildir.
+            </div>
+          </div><!-- login-wrap sonu -->
+        """, unsafe_allow_html=True)
+
+        # Giriş kontrolü
+        if login_btn:
+            if pwd == _APP_PASSWORD:
+                st.session_state["_auth_ok"]       = True
+                st.session_state["_login_failed"]  = False
+                st.session_state["_login_tries"]   = 0
+                st.rerun()
+            else:
+                st.session_state["_login_failed"]  = True
+                st.session_state["_auth_ok"]       = False
+                st.session_state["_login_tries"]   = tries + 1
+                st.rerun()
+
+        # Enter tuşu ile giriş (form olmadan)
+        if pwd and pwd != "":
+            if st.session_state.get("login_pwd") == _APP_PASSWORD:
+                st.session_state["_auth_ok"] = True
+                st.rerun()
+
+
+def check_password() -> bool:
+    """Oturum kontrolü — True dönerse uygulama devam eder."""
+    if st.session_state.get("_auth_ok", False):
+        return True
+    _login_page()
+    return False
+
+
+# ── ÇIKIŞ FONKSİYONU (sidebar'a eklenecek) ──────────────────────────
+def _render_logout():
+    """Sidebar'da çıkış butonu gösterir."""
+    st.sidebar.markdown("<hr>", unsafe_allow_html=True)
+    st.sidebar.markdown(
+        '<div style="font-size:8px;color:#3d5a80;text-align:center;letter-spacing:1px;'
+        'padding:4px 0;">🔐 Oturum Aktif</div>',
+        unsafe_allow_html=True)
+    if st.sidebar.button("🚪 Çıkış Yap", use_container_width=True, key="logout_btn"):
+        st.session_state["_auth_ok"]      = False
+        st.session_state["_login_failed"] = False
+        st.session_state["_login_tries"]  = 0
+        # Tüm oturumu sıfırla
+        for k in list(st.session_state.keys()):
+            if k not in ("_login_tries",):
+                del st.session_state[k]
+        st.rerun()
+
+
+# ════════════════════════════════════════════════════════════════════
+#  GİRİŞ KONTROLÜ — Doğru şifre girilmemişse burada dur
+# ════════════════════════════════════════════════════════════════════
+if not check_password():
+    st.stop()
+
+# --- BURADAN SONRASI UYGULAMANIN GERI KALANI ---
 
 # ═══════════════════════════════════════════════════
 #  CONFIG
@@ -4170,6 +4327,9 @@ with st.sidebar:
     if st.button("🗑 Cache Temizle", use_container_width=True):
         cclear(); st.cache_data.clear(); st.success("✓")
 
+    # ── Çıkış Butonu ─────────────────────────────────
+    _render_logout()
+
 # ═══════════════════════════════════════════════════
 #  PIYASA DURUMU — HAFTA SONU & KAPALI SEANS KORUMASI
 # ═══════════════════════════════════════════════════
@@ -4406,7 +4566,7 @@ st.markdown(f"""
   <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
     <div>
       <div class="apex-logo" style="font-size:1.9rem;">APEX PRO</div>
-      <div style="font-size:5px;color:#3d5a80;letter-spacing:.14em;margin-top:-2px;">v12.0 · MOBILE SUPREME</div>
+      <div style="font-size:5px;color:#3d5a80;letter-spacing:.14em;margin-top:-2px;">v13.0 · MOBILE SUPREME</div>
     </div>
     <div style="border-left:1px solid #0d1e30;padding-left:14px;">
       <div class="price-live" style="font-family:'Bebas Neue',cursive;font-size:1.95rem;color:{pc_};letter-spacing:.04em;">{fmt(price_,dp_)}</div>
